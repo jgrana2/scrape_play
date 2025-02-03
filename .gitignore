@@ -2,3 +2,5 @@
 env/
 accounts.db
 __pycache__/
+accounts.txt
+countdown_data.json

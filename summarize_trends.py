@@ -4,7 +4,6 @@ import openai
 import asyncio
 from twscrape import API
 from unidecode import unidecode
-import pyperclip
 import sys
 import pyperclip
 from typing import List, Dict
@@ -13,13 +12,13 @@ from gt import get_google_trends
 from tt import get_twitter_trends
 from create_post import post
 import json
-import json
 import re
 from typing import List, Dict
 import aioconsole
 
 # Load environment variables from the .env file
 load_dotenv()
+
 # Set the OpenAI API key
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -99,12 +98,8 @@ def sendToGPT(copyPrompt, use_ollama=False):
     else:
         client = openai.OpenAI()
         response = client.chat.completions.create(
-            #model="gpt-4-1106-preview",
-            model="gpt-4o-mini",
-            # model="o1-mini",
-            #model="gpt-3.5-turbo-1106",
+            model="o1-mini",
             messages=[
-                # {"role": "system", "content": "Eres un asistente útil."},
                 {"role": "user", "content": copyPrompt}
             ],
             stream=True
@@ -126,30 +121,11 @@ def sendToGPT(copyPrompt, use_ollama=False):
 async def searchTweetsAndCreatePrompt(searchTerm, mode="t", format="s"):
     api = API()
     
-    # Add and login accounts
-    twscrape_username = os.environ.get("TWSCRAPE_USERNAME")
-    twscrape_password = os.environ.get("TWSCRAPE_PASSWORD")
-    twscrape_email = os.environ.get("TWSCRAPE_EMAIL")
-    twscrape_api_key = os.environ.get("TWSCRAPE_API_KEY")
-    
-    try:
-        await api.pool.add_account(twscrape_username, twscrape_password, twscrape_email, twscrape_api_key)
-    except Exception as e:
-        print(f"[ERROR] Failed to add account: {e}")
-        return
-
-    try:
-        await api.pool.login_all()
-    except Exception as e:
-        print(f"[ERROR] Failed to log in accounts: {e}")
-        return
-
     # Search for tweets
     tweets = []
     search_query = f"{searchTerm} filter:links"
     try:
         async for tweet in api.search(search_query, limit=20):
-            # print(f"[DEBUG] Retrieved tweet: {tweet.rawContent}")
             tweets.append(tweet.rawContent)
     except Exception as e:
         print(f"[ERROR] Error during tweet search: {e}")
@@ -219,24 +195,15 @@ async def main_async(trends, limit=None):
         
         # Process the trend if Enter is pressed
         await post(await searchTweetsAndCreatePrompt(trend))
-        print("\n")
 
 def main():
     """
     Main function to execute the trend summarization.
     """
-    # Example object with a trends array
-    # trends_object = {
-    #     "trends": [
-    #         "Inteligencia Artificial",
-    #         "energía renovable",
-    #     ]
-    # }
 
     # Fetch trends from Twitter and Google
     ttrends = get_twitter_trends()
     gtrends = get_google_trends()
-    # grtrends = get_google_real_time_trends()  # If you choose to include real-time Google trends
 
     if not ttrends and not gtrends:
         print("No trends found from Twitter or Google.")
@@ -255,7 +222,6 @@ def main():
     trends_json = json.dumps(trends_object, ensure_ascii=False, indent=2)
 
     # Output the JSON (you can also write this to a file)
-    # print(trends_json)
     loop = asyncio.new_event_loop()  # Create a new event loop
     asyncio.set_event_loop(loop)  # Set it as the current event loop
     try:

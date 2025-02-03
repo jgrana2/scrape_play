@@ -49,16 +49,6 @@ def sendToGPT(copyPrompt):
 
 async def searchTweetsAndCreatePrompt(searchTerm, mode="t", format="l"):
     api = API()
-    
-    # Add and login accounts
-    twscrape_username = os.environ.get("TWSCRAPE_USERNAME")
-    twscrape_password = os.environ.get("TWSCRAPE_PASSWORD")
-    twscrape_email = os.environ.get("TWSCRAPE_EMAIL")
-    twscrape_api_key = os.environ.get("TWSCRAPE_API_KEY")
-
-    await api.pool.add_account(twscrape_username, twscrape_password, twscrape_email, twscrape_api_key)
-    await api.pool.login_all()
-
     # Search for tweets
     tweets = []
     async for tweet in api.search(f"{searchTerm} filter:links", limit=20):
